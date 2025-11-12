@@ -26,6 +26,11 @@ const permissionSchema = new mongoose.Schema({
   can_delete: {
     type: Boolean,
     default: false
+  },
+
+  can_view:{
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 
