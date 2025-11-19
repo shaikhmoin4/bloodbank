@@ -11,7 +11,7 @@ import Sidebar from '../components/common/Sidebar';
 import Header from '../components/common/Header';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import apiService from '../services/api';
+import api from '../services/api';
 
 const RolesPermissions = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -38,7 +38,7 @@ const RolesPermissions = () => {
     role: '',
     module: '',
     can_create: false,
-    can_view:false,
+    can_view: false,
     can_read: true,
     can_update: false,
     can_delete: false
@@ -63,90 +63,177 @@ const RolesPermissions = () => {
   ];
 
   useEffect(() => {
-    loadData();
+    fetchRoleData();
+    fetchPermissionData();
   }, []);
 
-  const loadData = async () => {
+  // Fetch Roles
+  const fetchRoleData = async () => {
     try {
       setLoading(true);
-      const [rolesRes, permissionsRes] = await Promise.all([
-        apiService.getRoles(),
-        apiService.getPermissions()
-      ]);
-
-      if (rolesRes.success) setRoles(rolesRes.data);
-      if (permissionsRes.success) setPermissions(permissionsRes.data);
-    } catch (error) {
-      console.error('Error loading data:', error);
+      const { data } = await api.get('/roles');
+      setRoles(data.data || data);
+    } catch (err) {
+      console.error("Failed to fetch roles:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch Permissions
+  const fetchPermissionData = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get('/permissions');
+      setPermissions(data.data || data);
+    } catch (err) {
+      console.error("Failed to fetch permissions:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Create Role
+  const createRole = async (roleData) => {
+    try {
+      const { data } = await api.post('/roles', roleData);
+      return data;
+    } catch (err) {
+      console.error("Failed to create role:", err);
+      throw err;
+    }
+  };
 
+  // Update Role
+  const updateRole = async (roleId, roleData) => {
+    try {
+      const { data } = await api.put(`/roles/${roleId}`, roleData);
+      return data;
+    } catch (err) {
+      console.error("Failed to update role:", err);
+      throw err;
+    }
+  };
+
+  // Delete Role
+  const deleteRole = async (roleId) => {
+    try {
+      const { data } = await api.delete(`/roles/${roleId}`);
+      return data;
+    } catch (err) {
+      console.error("Failed to delete role:", err);
+      throw err;
+    }
+  };
+
+  // Create Permission
+  const createPermission = async (permissionData) => {
+    try {
+      const { data } = await api.post('/permissions', permissionData);
+      return data;
+    } catch (err) {
+      console.error("Failed to create permission:", err);
+      throw err;
+    }
+  };
+
+  // Update Permission
+  const updatePermission = async (permissionId, permissionData) => {
+    try {
+      const { data } = await api.put(`/permissions/${permissionId}`, permissionData);
+      return data;
+    } catch (err) {
+      console.error("Failed to update permission:", err);
+      throw err;
+    }
+  };
+
+  // Delete Permission
+  const deletePermission = async (permissionId) => {
+    try {
+      const { data } = await api.delete(`/permissions/${permissionId}`);
+      return data;
+    } catch (err) {
+      console.error("Failed to delete permission:", err);
+      throw err;
+    }
+  };
+
+  // Get Users by Role
+  const getUsersByRole = async (roleId) => {
+    try {
+      const { data } = await api.get(`/roles/${roleId}/users`);
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch users by role:", err);
+      throw err;
+    }
+  };
+
+  // Role Form Submit Handler
   const handleRoleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingRole) {
-        await apiService.updateRole(editingRole._id, roleForm);
+        await updateRole(editingRole._id, roleForm);
       } else {
-        await apiService.createRole(roleForm);
+        await createRole(roleForm);
       }
-      await loadData();
+      await fetchRoleData();
       setShowRoleModal(false);
       setEditingRole(null);
-      setRoleForm({ name: '', description: '', is_default: false, status: 'active' });
+      setRoleForm({ 
+        name: '', 
+        description: '', 
+        is_default: false, 
+        status: 'active' 
+      });
     } catch (error) {
       console.error('Error saving role:', error);
     }
   };
 
+  // Edit Role Handler
   const handleEditRole = (role) => {
     setEditingRole(role);
     setRoleForm({
       name: role.name,
       description: role.description || '',
-      is_default: role.is_default,
-      status: role.status
+      is_default: role.is_default || false,
+      status: role.status || 'active'
     });
     setShowRoleModal(true);
   };
 
+  // Delete Role Handler
   const handleDeleteRole = async (roleId) => {
     if (window.confirm('Are you sure you want to delete this role?')) {
       try {
-        await apiService.deleteRole(roleId);
-        await loadData();
+        await deleteRole(roleId);
+        await fetchRoleData();
       } catch (error) {
         console.error('Error deleting role:', error);
       }
     }
   };
 
-
-
-
+  // Permission Form Submit Handler
   const handlePermissionSubmit = async (e) => {
     e.preventDefault();
-
-
     try {
-
       if (editingPermission) {
-        await apiService.updatePermission(editingPermission._id, permissionForm)
+        await updatePermission(editingPermission._id, permissionForm);
       } else {
-        await apiService.createPermission(permissionForm)
+        await createPermission(permissionForm);
       }
-
-      await loadData();
+      await fetchPermissionData();
       setShowPermissionModal(false);
       setEditingPermission(null);
       setPermissionForm({
         role: '',
         module: '',
         can_create: false,
-        can_view:false,
+        can_view: false,
         can_read: true,
         can_update: false,
         can_delete: false
@@ -154,16 +241,16 @@ const RolesPermissions = () => {
     } catch (error) {
       console.error('Error saving permission:', error);
     }
-  }
+  };
 
-
+  // Edit Permission Handler
   const handleEditPermission = (permission) => {
     setEditingPermission(permission);
     setPermissionForm({
-      role: permission.role._id,
+      role: permission.role?._id || permission.role,
       module: permission.module,
       can_create: permission.can_create,
-      can_view:permission.can_view,
+      can_view: permission.can_view,
       can_read: permission.can_read,
       can_update: permission.can_update,
       can_delete: permission.can_delete
@@ -171,24 +258,24 @@ const RolesPermissions = () => {
     setShowPermissionModal(true);
   };
 
+  // Delete Permission Handler
   const handleDeletePermission = async (permissionId) => {
     if (window.confirm('Are you sure you want to delete this permission?')) {
       try {
-        await apiService.deletePermission(permissionId);
-        await loadData();
+        await deletePermission(permissionId);
+        await fetchPermissionData();
       } catch (error) {
         console.error('Error deleting permission:', error);
       }
     }
   };
 
+  // Load Users by Role
   const loadUsersByRole = async (roleId) => {
     try {
-      const response = await apiService.getUsersByRole(roleId);
-      if (response.success) {
-        setUsersByRole(response.data.users);
-        setActiveTab('users');
-      }
+      const response = await getUsersByRole(roleId);
+      setUsersByRole(response.data?.users || response.users || []);
+      setActiveTab('users');
     } catch (error) {
       console.error('Error loading users by role:', error);
     }
@@ -218,10 +305,11 @@ const RolesPermissions = () => {
         header: 'Status',
         cell: ({ row }) => (
           <span
-            className={`px-2 py-1 text-xs rounded-full ${row.original.status === 'active'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-              }`}
+            className={`px-2 py-1 text-xs rounded-full ${
+              row.original.status === 'active'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
           >
             {row.original.status}
           </span>
@@ -252,7 +340,7 @@ const RolesPermissions = () => {
               variant="outline"
               onClick={() => loadUsersByRole(row.original._id)}
             >
-              View
+              View Users
             </Button>
             <Button
               size="sm"
@@ -276,7 +364,6 @@ const RolesPermissions = () => {
     []
   );
 
-
   // --- React Table Setup for Permissions ---
   const permissionColumns = useMemo(
     () => [
@@ -295,10 +382,11 @@ const RolesPermissions = () => {
         header: 'Read',
         cell: ({ row }) => (
           <span
-            className={`px-2 py-1 text-xs rounded-full ${row.original.can_read
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-              }`}
+            className={`px-2 py-1 text-xs rounded-full ${
+              row.original.can_read
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
           >
             {row.original.can_read ? 'Yes' : 'No'}
           </span>
@@ -309,10 +397,11 @@ const RolesPermissions = () => {
         header: 'Create',
         cell: ({ row }) => (
           <span
-            className={`px-2 py-1 text-xs rounded-full ${row.original.can_create
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-              }`}
+            className={`px-2 py-1 text-xs rounded-full ${
+              row.original.can_create
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
           >
             {row.original.can_create ? 'Yes' : 'No'}
           </span>
@@ -323,10 +412,11 @@ const RolesPermissions = () => {
         header: 'Update',
         cell: ({ row }) => (
           <span
-            className={`px-2 py-1 text-xs rounded-full ${row.original.can_update
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-              }`}
+            className={`px-2 py-1 text-xs rounded-full ${
+              row.original.can_update
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
           >
             {row.original.can_update ? 'Yes' : 'No'}
           </span>
@@ -337,10 +427,11 @@ const RolesPermissions = () => {
         header: 'Delete',
         cell: ({ row }) => (
           <span
-            className={`px-2 py-1 text-xs rounded-full ${row.original.can_delete
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-              }`}
+            className={`px-2 py-1 text-xs rounded-full ${
+              row.original.can_delete
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
           >
             {row.original.can_delete ? 'Yes' : 'No'}
           </span>
@@ -351,10 +442,11 @@ const RolesPermissions = () => {
         header: 'View',
         cell: ({ row }) => (
           <span
-            className={`px-2 py-1 text-xs rounded-full ${row.original.can_view
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-              }`}
+            className={`px-2 py-1 text-xs rounded-full ${
+              row.original.can_view
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
           >
             {row.original.can_view ? 'Yes' : 'No'}
           </span>
@@ -386,7 +478,6 @@ const RolesPermissions = () => {
     []
   );
 
-
   const table = useReactTable({
     data: roles,
     columns,
@@ -394,7 +485,6 @@ const RolesPermissions = () => {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-
 
   const permissionTable = useReactTable({
     data: permissions,
@@ -406,12 +496,15 @@ const RolesPermissions = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
+      {/* Sidebar */}
+      {/* <Sidebar 
+        collapsed={sidebarCollapsed} 
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+      /> */}
 
       {/* Main Content */}
-      {/* ${sidebarCollapsed ? 'ml-16' : 'ml-64'} */}
       <div className={`transition-all duration-300 `}>
-        <Header onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        {/* <Header onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} /> */}
 
         <main className="pt-20 px-6 pb-6">
           <div className="max-w-7xl mx-auto">
@@ -429,16 +522,18 @@ const RolesPermissions = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === tab.id
+                        ? 'border-red-500 text-red-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                   >
                     {tab.label} ({tab.count})
                   </button>
                 ))}
               </nav>
             </div>
+
 
             {/* Roles Table */}
             {activeTab === 'roles' && (
@@ -619,25 +714,26 @@ const RolesPermissions = () => {
                       Select a role to view users
                     </p>
                   ) : (
-                    usersByRole.map((u) => (
+                    usersByRole.map((user) => (
                       <div
-                        key={u.id}
+                        key={user._id || user.id}
                         className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
                       >
                         <div>
-                          <h4 className="font-medium text-gray-800">{u.name}</h4>
+                          <h4 className="font-medium text-gray-800">{user.name}</h4>
                           <p className="text-sm text-gray-600">
-                            @{u.username} • {u.email}
+                            @{user.username} • {user.email}
                           </p>
                         </div>
                         <div className="flex space-x-2">
                           <span
-                            className={`px-2 py-1 text-xs rounded-full ${u.status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                              }`}
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              user.status === 'active'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
                           >
-                            {u.status}
+                            {user.status}
                           </span>
                         </div>
                       </div>
@@ -702,6 +798,18 @@ const RolesPermissions = () => {
                     Default Role
                   </span>
                 </label>
+                <label className="flex items-center">
+                  <select
+                    value={roleForm.status}
+                    onChange={(e) =>
+                      setRoleForm({ ...roleForm, status: e.target.value })
+                    }
+                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </label>
               </div>
               <div className="flex justify-end space-x-3">
                 <Button
@@ -719,9 +827,6 @@ const RolesPermissions = () => {
           </div>
         </div>
       )}
-
-
-
 
       {/* Permission Modal */}
       {showPermissionModal && (
@@ -850,7 +955,6 @@ const RolesPermissions = () => {
                   type="button"
                   variant="outline"
                   onClick={() => setShowPermissionModal(false)}
-
                 >
                   Cancel
                 </Button>

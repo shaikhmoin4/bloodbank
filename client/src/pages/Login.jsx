@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiService from '../services/api';
+import api from '../services/api';
 import bloodSvg from '../assets/blood-research-amico.svg';
 
 const Login = () => {
@@ -26,6 +26,17 @@ const Login = () => {
     if (success) setSuccess('');
   };
 
+  // Login function using direct API call
+  const loginUser = async (credentials) => {
+    try {
+      const { data } = await api.post('/auth/login', credentials);
+      return data;
+    } catch (err) {
+      console.error("Failed to login:", err);
+      throw err;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -33,7 +44,7 @@ const Login = () => {
     setSuccess('');
 
     try {
-      const response = await apiService.login(formData);
+      const response = await loginUser(formData);
 
       if (response.success) {
         localStorage.setItem('token', response.data.token);
@@ -44,9 +55,11 @@ const Login = () => {
         setTimeout(() => {
           window.location.href = '/dashboard'; 
         }, 1500);
+      } else {
+        setError(response.message || 'Login failed. Please try again.');
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -237,60 +250,92 @@ const Login = () => {
       </div>
 
       {/* Add custom styles for blood animations - FIXED ROTATION */}
-<style jsx>{`
-  @keyframes bloodDrop {
-    0% {
-      transform: translateY(-150px) rotateZ(0deg) scale(0.5);
-      opacity: 0;
-    }
-    15% {
-      opacity: 0.8;
-      transform: translateY(0) rotateZ(0deg) scale(1);
-    }
-    85% {
-      opacity: 0.8;
-    }
-    100% {
-      transform: translateY(120vh) rotateZ(0deg) scale(0.8);
-      opacity: 0;
-    }
-  }
+      <style jsx>{`
+        @keyframes bloodDrop {
+          0% {
+            transform: translateY(-150px) rotateZ(0deg) scale(0.5);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.8;
+            transform: translateY(0) rotateZ(0deg) scale(1);
+          }
+          85% {
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateY(120vh) rotateZ(0deg) scale(0.8);
+            opacity: 0;
+          }
+        }
 
-  .blood-drop {
-    background: 
-      radial-gradient(circle at 30% 30%, #ef4444, #dc2626 70%);
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    position: relative;
-    filter: drop-shadow(1px 2px 2px rgba(220, 38, 38, 0.3));
-  }
+        .blood-drop {
+          background: 
+            radial-gradient(circle at 30% 30%, #ef4444, #dc2626 70%);
+          border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+          position: relative;
+          filter: drop-shadow(1px 2px 2px rgba(220, 38, 38, 0.3));
+        }
 
-  .blood-drop::after {
-    content: '';
-    position: absolute;
-    top: 20%;
-    left: 25%;
-    width: 15%;
-    height: 15%;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-    transform: rotate(10deg);
-  }
+        .blood-drop::after {
+          content: '';
+          position: absolute;
+          top: 20%;
+          left: 25%;
+          width: 15%;
+          height: 15%;
+          background: rgba(255, 255, 255, 0.5);
+          border-radius: 50%;
+          transform: rotate(10deg);
+        }
 
-  .blood-drop.large {
-    width: 18px;
-    height: 24px;
-  }
+        .blood-drop.large {
+          width: 18px;
+          height: 24px;
+        }
 
-  .blood-drop.medium {
-    width: 13px;
-    height: 18px;
-  }
+        .blood-drop.medium {
+          width: 13px;
+          height: 18px;
+        }
 
-  .blood-drop.small {
-    width: 8px;
-    height: 12px;
-  }
-`}</style>
+        .blood-drop.small {
+          width: 8px;
+          height: 12px;
+        }
+
+        @keyframes bloodStream {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+        }
+
+        .animate-bloodStream {
+          animation: bloodStream 3s ease-in-out infinite;
+        }
+
+        @keyframes bloodCellFloat {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-20px) rotate(120deg); }
+          66% { transform: translateY(-10px) rotate(240deg); }
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.3; transform: scale(1.1); }
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes ping-slow {
+          75%, 100% { transform: scale(2); opacity: 0; }
+        }
+
+        .animate-ping-slow {
+          animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+      `}</style>
     </div>
   );
 };

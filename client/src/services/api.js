@@ -1,124 +1,144 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+import axios from 'axios';
 
-class ApiService {
-  constructor() {
-    this.baseURL = API_BASE_URL;
-  }
 
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    };
+const instance = axios.create({
 
-    // Add auth token if available
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  baseURL: 'http://localhost:3000/api',
 
-    try {
-      const response = await fetch(url, config);
-      const data = await response.json();
+});
 
-      if (!response.ok) {
-        throw new Error(data.message || 'API request failed');
-      }
+instance.interceptors.request.use((config) => {  
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-      return data;
-    } catch (error) {
-      console.error('API request error:', error);
-      throw error;
-    }
-  }
+ 
+export default instance;
 
-  // Auth endpoints
-  async login(credentials) {
-    return this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
-  }
 
-  async register(userData) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
-  }
 
-  async logout() {
-    return this.request('/auth/logout', {
-      method: 'POST',
-    });
-  }
+// const API_BASE_URL = 'http://localhost:3000/api';
 
-  async getProfile() {
-    return this.request('/auth/profile');
-  }
+// class ApiService {
+//   constructor() {
+//     this.baseURL = API_BASE_URL;
+//   }
 
-  // Roles endpoints
-  async getRoles() {
-    return this.request('/roles');
-  }
+//   async request(endpoint, options = {}) {
+//     const url = `${this.baseURL}${endpoint}`;
+//     const config = {
+//       headers: {
+//         'Content-Type': 'application/json',
+//         ...options.headers,
+//       },
+//       ...options,
+//     };
 
-  async createRole(roleData) {
-    return this.request('/roles', {
-      method: 'POST',
-      body: JSON.stringify(roleData),
-    });
-  }
+//     // Add auth token if available
+//     const token = localStorage.getItem('token');
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
 
-  async updateRole(id, roleData) {
-    return this.request(`/roles/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(roleData),
-    });
-  }
+//     try {
+//       const response = await fetch(url, config);
+//       const data = await response.json();
 
-  async deleteRole(id) {
-    return this.request(`/roles/${id}`, {
-      method: 'DELETE',
-    });
-  }
+//       if (!response.ok) {
+//         throw new Error(data.message || 'API request failed');
+//       }
 
-  async getUsersByRole(roleId) {
-    return this.request(`/roles/${roleId}/users`);
-  }
+//       return data;
+//     } catch (error) {
+//       console.error('API request error:', error);
+//       throw error;
+//     }
+//   }
 
-  // Permissions endpoints
-  async getPermissions() {
-    return this.request('/permissions');
-  }
+//   // Auth endpoints
+//   async login(credentials) {
+//     return this.request('/auth/login', {
+//       method: 'POST',
+//       body: JSON.stringify(credentials),
+//     });
+//   }
 
-  async createPermission(permissionData) {
-    return this.request('/permissions', {
-      method: 'POST',
-      body: JSON.stringify(permissionData),
-    });
-  }
+//   async register(userData) {
+//     return this.request('/auth/register', {
+//       method: 'POST',
+//       body: JSON.stringify(userData),
+//     });
+//   }
 
-  async updatePermission(id, permissionData) {
-    return this.request(`/permissions/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(permissionData),
-    });
-  }
+//   async logout() {
+//     return this.request('/auth/logout', {
+//       method: 'POST',
+//     });
+//   }
 
-  async deletePermission(id) {
-    return this.request(`/permissions/${id}`, {
-      method: 'DELETE',
-    });
-  }
+//   async getProfile() {
+//     return this.request('/auth/profile');
+//   }
 
-  // Health check
-  async healthCheck() {
-    return this.request('/health');
-  }
-}
+//   // Roles endpoints
+//   async getRoles() {
+//     return this.request('/roles');
+//   }
 
-export default new ApiService();
+//   async createRole(roleData) {
+//     return this.request('/roles', {
+//       method: 'POST',
+//       body: JSON.stringify(roleData),
+//     });
+//   }
+
+//   async updateRole(id, roleData) {
+//     return this.request(`/roles/${id}`, {
+//       method: 'PUT',
+//       body: JSON.stringify(roleData),
+//     });
+//   }
+
+//   async deleteRole(id) {
+//     return this.request(`/roles/${id}`, {
+//       method: 'DELETE',
+//     });
+//   }
+
+//   async getUsersByRole(roleId) {
+//     return this.request(`/roles/${roleId}/users`);
+//   }
+
+//   // Permissions endpoints
+//   async getPermissions() {
+//     return this.request('/permissions');
+//   }
+
+//   async createPermission(permissionData) {
+//     return this.request('/permissions', {
+//       method: 'POST',
+//       body: JSON.stringify(permissionData),
+//     });
+//   }
+
+//   async updatePermission(id, permissionData) {
+//     return this.request(`/permissions/${id}`, {
+//       method: 'PUT',
+//       body: JSON.stringify(permissionData),
+//     });
+//   }
+
+//   async deletePermission(id) {
+//     return this.request(`/permissions/${id}`, {
+//       method: 'DELETE',
+//     });
+//   }
+
+//   // Health check
+//   async healthCheck() {
+//     return this.request('/health');
+//   }
+// }
+
+// export default new ApiService();

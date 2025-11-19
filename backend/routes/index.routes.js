@@ -3,7 +3,9 @@ import authRoutes from './auth.routes.js';
 import adminRoutes from './admin.routes.js';
 import roleRoutes from './role.routes.js';
 import permissionRoutes from './permission.routes.js';
-
+import HospitalRoute from './Hospital.routes.js';
+import Bloodrequestsrouter from './BloodRequest.routes.js';
+import BloodGroupingRoute from './patientBloodGrouping.routes.js';
 const router = express.Router();
 
 router.get('/health', (req, res) => {
@@ -32,5 +34,8 @@ router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
 router.use('/roles', roleRoutes);
 router.use('/permissions', permissionRoutes);
+router.use('/hospital',HospitalRoute);
+router.use('/blood-requests',Bloodrequestsrouter)
+router.use('/blood-grouping',BloodGroupingRoute);
 
 export default router;

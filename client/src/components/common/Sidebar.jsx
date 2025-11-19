@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { FaAngleDown, FaAngleUp } from "react-icons/fa";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onSidebarToggle }) => {
+  const navigate = useNavigate();
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null);
+  const [openMenus, setOpenMenus] = useState({});
 
   const menuItems = [
     {
@@ -75,7 +76,6 @@ const Sidebar = () => {
         { name: 'Loan Inward', path: '/inward/loan-inward' }
       ]
     },
-
     {
       name: 'Donor',
       icon: (
@@ -120,12 +120,41 @@ const Sidebar = () => {
     },
     {
       name: 'Serology',
-      path: '/serology',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
         </svg>
-      )
+      ),
+      dropdown: [
+        {
+          name: 'Patient BG & Ab Screening',
+          dropdown: [
+            { name: 'BG Grouping', path: '/serology/bg-grouping-list' },
+            { name: 'BG Validation', path: '/serology/bg-validation' },
+            { name: 'BG Grouping Abnormal', path: '/serology/bg-grouping-abnormal' },
+            { name: 'Auto BG', path: '/serology/auto-bg' },
+            { name: 'BG Retest First Issue', path: '/serology/bg-retest-first-issue' },
+            { name: 'BG Retest First Issue Abnormal', path: '/serology/bg-retest-first-issue-abnormal' },
+            { name: 'AB Screening', path: '/serology/ab-screening-list' },
+            { name: 'AB Screening - Retest', path: '/serology/ab-screening-retest' },
+            { name: 'AB Validation', path: '/serology/ab-validation' },
+            { name: 'Auto AB Screening', path: '/serology/auto-ab-screening' },
+            { name: 'Antibody Identification', path: '/serology/antibody-identification' },
+            { name: 'Antibody Titer', path: '/serology/antibody-titer' }
+          ]
+        },
+
+        { name: 'Bag Allocation', path: '/serology/cross-matching' },
+        { name: 'Issue', path: '/serology/direct-coombs-test' },
+        { name: 'Manual Bag Issue', path: '/serology/cross-matching' },
+        { name: 'BC Pooled', path: '/serology/direct-coombs-test' },
+        { name: 'Retrun Form Issue', path: '/serology/cross-matching' },
+        { name: 'Transfusion Adverse Reaction', path: '/serology/direct-coombs-test' },
+        { name: 'Patient DCT', path: '/serology/cross-matching' },
+        { name: 'Patient Sample Rejection', path: '/serology/direct-coombs-test' },
+        { name: 'Blood Request / Sample Approve', path: '/serology/cross-matching' },
+        { name: 'Patient Auto DCT', path: '/serology/direct-coombs-test' }
+      ]
     },
     {
       name: 'Quarantine',
@@ -301,7 +330,27 @@ const Sidebar = () => {
         </svg>
       )
     },
-
+    {
+      name: 'Add Hospital',
+      path: '/create-hospitals',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V10a2 2 0 012-2h10a2 2 0 012 2v11M9 14h6M12 11v6M8 6h8M10 3h4" />
+        </svg>
+      )
+    },
+    {
+      name: 'Branch Module',
+      path: '/branch-module',
+      icon: (
+        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M18 8a3 3 0 11-3-3 3 3 0 013 3z" />
+          <path d="M6 16a3 3 0 11-3-3 3 3 0 013 3z" />
+          <path d="M15 11.5c-1.5 0-4.5-.5-6 1.5-1.2 1.6-1 4 1 5.5" />
+          <path d="M12 9c0 1.5 1.5 2 3 2" />
+        </svg>
+      )
+    },
     {
       name: 'Role & Permissions',
       path: '/roles-permissions',
@@ -311,14 +360,136 @@ const Sidebar = () => {
         </svg>
       )
     },
-
   ];
 
+  const toggleMenu = (label) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
+
+  const handleLinkClick = (path) => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      onSidebarToggle();
+    }
+    if (path) {
+      navigate(path);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
+  // Recursive function to render menu items with unlimited nesting
+  const renderMenuItems = (items, level = 0) => {
+    return items.map((item, index) => {
+      const isActive = item.path ? location.pathname === item.path : false;
+      const isOpen = openMenus[item.name];
+      const hasDropdown = item.dropdown && item.dropdown.length > 0;
+      const uniqueKey = `${item.name}-${level}-${index}`;
+
+      // Calculate padding based on level for visual indentation
+      const paddingLeft = 12 + (level * 16);
+
+      if (hasDropdown) {
+        return (
+          <li key={uniqueKey} className="rounded-lg">
+            <button
+              onClick={() => toggleMenu(item.name)}
+              className={`flex items-center justify-between gap-3 p-3 w-full rounded-lg text-left transition-all duration-200 group ${isOpen ? "bg-red-50 text-red-600" : "text-gray-700 hover:bg-gray-50 hover:text-red-600"
+                }`}
+              style={{ paddingLeft: `${paddingLeft}px` }}
+            >
+              <span className="flex items-center gap-3">
+                {level === 0 && (
+                  <div className={`flex-shrink-0 ${isOpen ? 'text-red-600' : 'text-gray-500 group-hover:text-red-600'
+                    }`}>
+                    {item.icon}
+                  </div>
+                )}
+                <span className={`font-medium ${isOpen ? 'text-red-600' : 'text-gray-700 group-hover:text-red-600'
+                  }`}>
+                  {item.name}
+                </span>
+              </span>
+              {isOpen ? <FaAngleUp size={16} /> : <FaAngleDown size={16} />}
+            </button>
+
+            {isOpen && (
+              <ul className="mt-1 space-y-1">
+                {renderMenuItems(item.dropdown, level + 1)}
+              </ul>
+            )}
+          </li>
+        );
+      }
+
+      return (
+        <li
+          key={uniqueKey}
+          className={`rounded-lg ${isActive ? "bg-red-50 text-red-600" : "text-gray-700 hover:bg-gray-50 hover:text-red-600"
+            }`}
+        >
+          <button
+            onClick={() => {
+              if (item.name === 'Logout') {
+                handleLogout();
+              } else {
+                handleLinkClick(item.path);
+              }
+            }}
+            className="flex items-center gap-3 p-3 rounded-lg w-full text-left transition-all duration-200 group"
+            style={{ paddingLeft: `${paddingLeft}px` }}
+          >
+            {level === 0 && (
+              <div className={`flex-shrink-0 ${isActive ? 'text-red-600' : 'text-gray-500 group-hover:text-red-600'
+                }`}>
+                {item.icon}
+              </div>
+            )}
+            <span className={`font-medium ${isActive ? 'text-red-600' : 'text-gray-700 group-hover:text-red-600'
+              }`}>
+              {item.name}
+            </span>
+          </button>
+        </li>
+      );
+    });
+  };
+
+  // Auto open menus if child path matches (supports multiple levels)
+  useEffect(() => {
+    const findAndOpenParents = (items, currentPath, parentNames = []) => {
+      items.forEach(item => {
+        if (item.path === currentPath && parentNames.length > 0) {
+          // Open all parent menus
+          parentNames.forEach(parentName => {
+            setOpenMenus(prev => ({ ...prev, [parentName]: true }));
+          });
+        }
+
+        if (item.dropdown) {
+          // Recursively check nested dropdowns
+          findAndOpenParents(item.dropdown, currentPath, [...parentNames, item.name]);
+        }
+      });
+    };
+
+    findAndOpenParents(menuItems, location.pathname);
+  }, [location.pathname]);
+
   return (
-    <div className={`bg-white shadow-lg transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} h-screen fixed left-0 top-0 z-40 flex flex-col`}>
+    <aside
+      className={`bg-white text-black h-screen fixed top-0 left-0 overflow-y-auto transform transition-transform duration-300 z-40 shadow-lg ${isOpen ? "translate-x-0 w-64" : "-translate-x-full"
+        }`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {!isCollapsed && (
+        {isOpen && (
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">ST</span>
@@ -329,113 +500,15 @@ const Sidebar = () => {
             </div>
           </div>
         )}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-        >
-          <svg className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
       </div>
 
       {/* Navigation Menu */}
       <nav className="mt-6 flex-1 overflow-y-auto">
         <ul className="space-y-2 px-3">
-          {menuItems.map((item, index) => {
-            const isActive = item.path ? location.pathname === item.path : false;
-            const isDropdownOpen = openDropdown === index;
-            const hasDropdown = item.dropdown && item.dropdown.length > 0;
-
-            return (
-              <li key={item.path || item.name}>
-                {hasDropdown ? (
-                  <div>
-                    <button
-                      onClick={() => setOpenDropdown(isDropdownOpen ? null : index)}
-                      className={`flex items-center justify-between w-full px-3 py-3 rounded-lg transition-all duration-200 group ${
-                        isActive
-                          ? 'bg-red-50 text-red-600 border-r-4 border-red-600'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-red-600'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`flex-shrink-0 ${isActive ? 'text-red-600' : 'text-gray-500 group-hover:text-red-600'}`}>
-                          {item.icon}
-                        </div>
-                        {!isCollapsed && (
-                          <span className={`font-medium ${isActive ? 'text-red-600' : 'text-gray-700 group-hover:text-red-600'}`}>
-                            {item.name}
-                          </span>
-                        )}
-                      </div>
-                      {!isCollapsed && (
-                        <svg
-                          className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      )}
-                    </button>
-                    {isDropdownOpen && !isCollapsed && (
-                      <ul className="ml-8 mt-2 space-y-1">
-                        {item.dropdown.map((subItem) => {
-                          const isSubActive = location.pathname === subItem.path;
-                          return (
-                            <li key={subItem.path}>
-                              <Link
-                                to={subItem.path}
-                                className={`block px-3 py-2 rounded-lg transition-all duration-200 text-sm ${
-                                  isSubActive
-                                    ? 'bg-red-50 text-red-600'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-red-600'
-                                }`}
-                              >
-                                {subItem.name}
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </div>
-                ) : (
-                  <Link
-                    to={item.path}
-                    className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group ${
-                      isActive
-                        ? 'bg-red-50 text-red-600 border-r-4 border-red-600'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-red-600'
-                    }`}
-                  >
-                    <div className={`flex-shrink-0 ${isActive ? 'text-red-600' : 'text-gray-500 group-hover:text-red-600'}`}>
-                      {item.icon}
-                    </div>
-                    {!isCollapsed && (
-                      <span className={`font-medium ${isActive ? 'text-red-600' : 'text-gray-700 group-hover:text-red-600'}`}>
-                        {item.name}
-                      </span>
-                    )}
-                  </Link>
-                )}
-              </li>
-            );
-          })}
+          {renderMenuItems(menuItems)}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className=" bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-        {!isCollapsed && (
-          <div className="text-center">
-            <p className="text-xs text-gray-500">Version 1.0.0</p>
-          </div>
-        )}
-      </div>
-    </div>
+    </aside>
   );
 };
 

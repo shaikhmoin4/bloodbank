@@ -34,6 +34,11 @@ const ChargesSchema = new Schema({
 }, { _id: false });
 
 const PatientSchema = new Schema({
+
+  caseID: { type: String },
+  orderNo: { type: String },
+
+
   // --- Patient / Request main details ---
   requestType: { type: String, required: true },
   requestSubType: { type: String, required: true },
@@ -42,7 +47,7 @@ const PatientSchema = new Schema({
   dateOfBirth: { type: Date },
   prescribedSlideBG: { type: String }, // Prescribed/Slide BG
   age: { type: Number },
-  ageType: { type: String, enum: ['Y', 'M', 'D', 'Unknown'], default: 'Unknown' }, // Years/Months/Days
+  ageType: { type: String, enum: ['Y', 'M', 'D', 'Unknown'], default: 'Unknown' },
 
   gender: { type: String, enum: ['Male', 'Female', 'Other', 'Unknown'], default: 'Unknown' },
 
@@ -86,6 +91,12 @@ const PatientSchema = new Schema({
   // --- Charges & rate ---
   charges: { type: ChargesSchema },
 
+ 
+
+
+
+
+
   // --- audit / meta ---
   createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
   updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
@@ -95,11 +106,45 @@ const PatientSchema = new Schema({
 
 }, { timestamps: true });
 
+// -------------- FIXED PRE HOOK -----------------
+PatientSchema.pre("save", async function (next) {
+  if (!this.isNew) return next();
+
+  try {
+    // IMPORTANT: use mongoose.models[] (NO RE-COMPILE)
+    const BloodRequest =
+      mongoose.models["blood-request"] ||
+      mongoose.model("blood-request", PatientSchema);
+
+    const lastRecord = await BloodRequest.findOne().sort({ createdAt: -1 });
+
+    let nextNumber = 1;
+
+    if (lastRecord && lastRecord.caseID) {
+      const lastNum = parseInt(lastRecord.caseID.split("B-")[1]);
+      nextNumber = lastNum + 1;
+    }
+
+    this.caseID = `B-${nextNumber}`;
+    this.orderNo = `B-${nextNumber}`;
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+
+
+PatientSchema.index({ caseID: 1 });
+PatientSchema.index({ orderNo: 1 });
+
 // Indexes
 PatientSchema.index({ patientIdentifier: 1 });
 PatientSchema.index({ 'hospitalDetails.hospital': 1 });
-PatientSchema.index({ requestDateTime: -1 });
 
-// ✅ ES Module export
-const Patient = mongoose.model('Patient', PatientSchema);
-export default Patient;
+
+
+export default mongoose.models["blood-request"] ||
+  mongoose.model("blood-request", PatientSchema);
