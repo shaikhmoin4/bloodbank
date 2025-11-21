@@ -5,8 +5,8 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
 export default function BGGroupingView() {
-    const { id } = useParams();
-    const [details, setDetails] = useState(null);
+     const { id } = useParams();
+     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [formLoading, setFormLoading] = useState(false);
 
@@ -32,16 +32,31 @@ export default function BGGroupingView() {
         reverse_b_Cell: "",
         reverse_o_Cell: "",
 
-        antigen_status_check: "",
-        antigen_status_allow: "",
-
-        testedBy: "",
-        remarks: ""
+        antigenicStatus: {
+            testedBy: "",
+            remarks: "",
+            checkAntigenicStatus: false,
+            allowRetest: false
+        }
     });
 
-    const updateForm = (key, value) => {
-        setForm({ ...form, [key]: value });
+    // const updateForm = (key, value) => {
+    //     setForm({ ...form, [key]: value });
+    // };
+
+    const updateForm = (path, value) => {
+        const keys = path.split(".");
+        const updated = { ...form };
+
+        let obj = updated;
+        for (let i = 0; i < keys.length - 1; i++) {
+            obj = obj[keys[i]];
+        }
+
+        obj[keys[keys.length - 1]] = value;
+        setForm(updated);
     };
+
 
     const getDetails = async () => {
         try {
@@ -54,54 +69,56 @@ export default function BGGroupingView() {
         }
     };
 
-   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormLoading(true);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setFormLoading(true);
 
-    try {
-        const response = await api.post(`/blood-grouping/${id}`, form);
+        try {
+            const response = await api.post(`/blood-grouping/${id}`, form);
 
-        if (response.data.success) {
-            alert("Blood grouping result saved successfully!");
+            if (response.data.success) {
+                alert("Blood grouping result saved successfully!");
 
-            // RESET FORM
-            setForm({
-                bloodGroup_method: "",
-                bloodGroup_confirmedBG: "",
-                bloodGroup_forwardGroup: "",
-                bloodGroup_reverseGroup: "",
+                // RESET FORM
+                
+                setForm({
+                    bloodGroup_method: "",
+                    bloodGroup_confirmedBG: "",
+                    bloodGroup_forwardGroup: "",
+                    bloodGroup_reverseGroup: "",
 
-                forward_anti_A: "",
-                forward_anti_B: "",
-                forward_anti_AB: "",
-                forward_anti_D1: "",
-                forward_anti_D2: "",
-                forward_antiA1: "",
-                forward_anti_H: "",
+                    forward_anti_A: "",
+                    forward_anti_B: "",
+                    forward_anti_AB: "",
+                    forward_anti_D1: "",
+                    forward_anti_D2: "",
+                    forward_antiA1: "",
+                    forward_anti_H: "",
 
-                weakD_IgG_M: "",
-                weakD_IgG_M_2: "",
-                weakD_IgG: "",
+                    weakD_IgG_M: "",
+                    weakD_IgG_M_2: "",
+                    weakD_IgG: "",
 
-                reverse_a_Cell: "",
-                reverse_b_Cell: "",
-                reverse_o_Cell: "",
+                    reverse_a_Cell: "",
+                    reverse_b_Cell: "",
+                    reverse_o_Cell: "",
 
-                antigen_status_check: "",
-                antigen_status_allow: "",
+                    antigenicStatus: {
+                        testedBy: "",
+                        remarks: "",
+                        checkAntigenicStatus: false,
+                        allowRetest: false
+                    }
+                });
+            }
 
-                testedBy: "",
-                remarks: ""
-            });
+        } catch (error) {
+            console.error("Error saving blood grouping:", error);
+            alert("Error saving blood grouping result");
+        } finally {
+            setFormLoading(false);
         }
-
-    } catch (error) {
-        console.error("Error saving blood grouping:", error);
-        alert("Error saving blood grouping result");
-    } finally {
-        setFormLoading(false);
-    }
-};
+    };
 
 
     useEffect(() => {
@@ -460,8 +477,9 @@ export default function BGGroupingView() {
                                         Tested By
                                     </label>
                                     <select
-                                        value={form.testedBy}
-                                        onChange={(e) => updateForm("testedBy", e.target.value)}
+                                        value={form.antigenicStatus.testedBy}
+                                        onChange={(e) => updateForm("antigenicStatus.testedBy", e.target.value)}
+
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                     >
                                         <option value="">-- Select Tester --</option>
@@ -479,8 +497,8 @@ export default function BGGroupingView() {
                                     </label>
                                     <textarea
                                         name="remarks"
-                                        value={form.remarks}
-                                        onChange={(e) => updateForm("remarks", e.target.value)}
+                                        value={form.antigenicStatus.remarks}
+                                        onChange={(e) => updateForm("antigenicStatus.remarks", e.target.value)}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                                         rows={3}
                                         placeholder="Additional notes or observations"
@@ -492,8 +510,10 @@ export default function BGGroupingView() {
                                             type="checkbox"
                                             id="antigen_status_check"
                                             name="antigen_status_check"
-                                            checked={form.antigen_status_check === "true" || form.antigen_status_check === true}
-                                            onChange={(e) => updateForm("antigen_status_check", e.target.checked ? "true" : "false")}
+                                            // checked={form.antigen_status_check === "true" || form.antigen_status_check === true}
+                                            // onChange={(e) => updateForm("antigen_status_check", e.target.checked ? "true" : "false")}
+                                            checked={form.antigenicStatus.checkAntigenicStatus}
+                                            onChange={(e) => updateForm("antigenicStatus.checkAntigenicStatus", e.target.checked)}
                                             className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                                         />
                                         <label htmlFor="antigen_status_check" className="block text-sm font-medium text-gray-700">
@@ -506,8 +526,10 @@ export default function BGGroupingView() {
                                             type="checkbox"
                                             id="antigen_status_allow"
                                             name="antigen_status_allow"
-                                            checked={form.antigen_status_allow === "true" || form.antigen_status_allow === true}
-                                            onChange={(e) => updateForm("antigen_status_allow", e.target.checked ? "true" : "false")}
+                                            // checked={form.antigen_status_allow === "true" || form.antigen_status_allow === true}
+                                            // onChange={(e) => updateForm("antigen_status_allow", e.target.checked ? "true" : "false")}
+                                            checked={form.antigenicStatus.allowRetest}
+                                            onChange={(e) => updateForm("antigenicStatus.allowRetest", e.target.checked)}
                                             className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                                         />
                                         <label htmlFor="antigen_status_allow" className="block text-sm font-medium text-gray-700">

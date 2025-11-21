@@ -57,6 +57,8 @@ export default function BGGroupingList() {
         `${item.patientNameF || ""} ${item.patientNameL || ""}`.toLowerCase();
 
       return (
+
+        item.requestSampleStatus !== 'approve_request' &&   // <--- APPROVED requests HIDE
         fullName.includes(filters.patientName.toLowerCase()) &&
         item.patientIdentifier?.toString().includes(filters.patientID) &&
         item.patientSampleId?.toString().includes(filters.sampleID) &&
@@ -177,7 +179,7 @@ export default function BGGroupingList() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Blood Request List</h1>
+      <h1 className="text-2xl font-semibold mb-4">Patient Blood Grouping</h1>
 
 
       <div className="grid grid-cols-6 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border">

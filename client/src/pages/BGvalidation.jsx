@@ -25,39 +25,75 @@ export default function BGValidation() {
     // -------------------------
     // SAVE VALIDATION
     // -------------------------
-    const handleUpdate = async () => {
-        try {
-            const payload = {
-                remarks: remarksData,
+    // const handleUpdate = async () => {
+    //     try {
+    //         const payload = {
+
+    //             BGValidation: {
+    //                 remarks: remarksData,
+    //                 validatedBy: validatedBy,
+    //                 validatedDate: new Date(),
+    //             }
+
+    //         };
+
+    //         await api.put("/blood-grouping/validation", payload);
+
+    //         // SUCCESS alert
+    //         Swal.fire({
+    //             title: "Success!",
+    //             text: "Validation Saved Successfully",
+    //             icon: "success",
+    //             timer: 1500,
+    //             showConfirmButton: false,
+    //         });
+
+    //         // 🔥 INSTANT UI UPDATE (NO REFRESH REQUIRED)
+    //         await fetchList();  // backend से updated list लाओ (Valid rows हट जाएँगे)
+
+    //     } catch (err) {
+    //         console.log(err);
+
+    //         Swal.fire({
+    //             title: "Error!",
+    //             text: "Error Saving Validation",
+    //             icon: "error",
+    //         });
+    //     }
+    // };
+
+const handleUpdate = async () => {
+    try {
+        const payload = {
+            BGValidation: {
+                rows: remarksData,  // ← FIXED
                 validatedBy: validatedBy,
                 validatedDate: new Date(),
-            };
+            }
+        };
 
-            await api.put("/blood-grouping/validation", payload);
+        await api.put("/blood-grouping/validation", payload);
 
-            // SUCCESS alert
-            Swal.fire({
-                title: "Success!",
-                text: "Validation Saved Successfully",
-                icon: "success",
-                timer: 1500,
-                showConfirmButton: false,
-            });
+        Swal.fire({
+            title: "Success!",
+            text: "Validation Saved Successfully",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+        });
 
-            // 🔥 INSTANT UI UPDATE (NO REFRESH REQUIRED)
-            await fetchList();  // backend से updated list लाओ (Valid rows हट जाएँगे)
+        await fetchList();
 
-        } catch (err) {
-            console.log(err);
+    } catch (err) {
+        console.log(err);
 
-            Swal.fire({
-                title: "Error!",
-                text: "Error Saving Validation",
-                icon: "error",
-            });
-        }
-    };
-
+        Swal.fire({
+            title: "Error!",
+            text: "Error Saving Validation",
+            icon: "error",
+        });
+    }
+};
 
     // -------------------------
     // FETCH BLOOD GROUPING LIST
@@ -82,7 +118,7 @@ export default function BGValidation() {
     // -------------------------
     const filteredData = useMemo(() => {
         return data
-            .filter((item) => item.validationRemark !== "Valid")   // <-- VALID ROWS REMOVE
+            .filter((item) => item.BGValidation?.validationRemark !== "Valid")   // <-- VALID ROWS REMOVE
             .filter((item) => {
                 const p = item.patientID || {};
                 const fullName = `${p.patientNameF || ""} ${p.patientNameM || ""} ${p.patientNameL || ""}`.toLowerCase();
@@ -117,11 +153,11 @@ export default function BGValidation() {
 
     return (
         <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Blood Grouping List</h2>
+            <h2 className="text-xl font-bold mb-4">Patient Group Validation</h2>
 
-            {/* ------------------------- */}
+            
             {/* FILTERS SECTION */}
-            {/* ------------------------- */}
+            
             <div className="grid grid-cols-6 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border">
                 {[
                     { key: "patientName", label: "Patient Name" },
@@ -258,9 +294,9 @@ export default function BGValidation() {
                 </tbody>
             </table>
 
-           
+
             {/* VALIDATION FOOTER */}
-          
+
             <div className="mt-5 flex justify-between items-center">
                 <div className="flex gap-6">
                     <div className="flex flex-col">

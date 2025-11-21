@@ -5,6 +5,8 @@ import api from '../services/api.js';
 import { useNavigate, useParams } from 'react-router-dom';
 const BloodRequest = () => {
 
+  const [addedComponents, setAddedComponents] = useState([]);
+  const [showList, setShowList] = useState(false);
 
   const navigate = useNavigate();
   const { id } = useParams(); // For edit mode
@@ -74,6 +76,18 @@ const BloodRequest = () => {
     }
   }, [id]);
 
+
+  useEffect(() => {
+    // Page load par default ek blank row
+    if (formData.requestComponents.length === 0) {
+      setFormData(prev => ({
+        ...prev,
+        requestComponents: [
+          { component: '', quantity: 0, volume: '', no: '' }
+        ]
+      }));
+    }
+  }, []);
 
   const loadBloodRequest = async () => {
     try {
@@ -147,9 +161,8 @@ const BloodRequest = () => {
               </p>
             </div>
             <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full animate-pulse ${
-                loading ? 'bg-yellow-500' : 'bg-green-500'
-              }`}></div>
+              <div className={`w-3 h-3 rounded-full animate-pulse ${loading ? 'bg-yellow-500' : 'bg-green-500'
+                }`}></div>
               <span className="text-sm text-gray-500">
                 {loading ? 'Processing...' : 'Form Ready'}
               </span>
@@ -182,6 +195,7 @@ const BloodRequest = () => {
                   required
                 >
                   <option value="">Select Request Type</option>
+                  <option value="General">General</option>
                   <option value="blood_request">Blood Request</option>
                   <option value="component_request">Component Request</option>
                 </select>
@@ -199,6 +213,7 @@ const BloodRequest = () => {
                   required
                 >
                   <option value="">Select Sub Type</option>
+                  <option value="General">General</option>
                   <option value="urgent">Urgent</option>
                   <option value="regular">Regular</option>
                 </select>
@@ -335,13 +350,21 @@ const BloodRequest = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Sample Type <span className=' text-red-700'>*</span>
                 </label>
-                <input
+                <select name="sampleType" value={formData.sampleType}
+                  onChange={handleInputChange} id="" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                  <option value="">Sample Type</option>
+                  <option value="EDTA/PLAIN">EDTA/PLAIN</option>
+                  <option value="EDTA">EDTA</option>
+                  <option value="PLAIN">PLAIN</option>
+                  <option value="Not Received">Not Received</option>
+                </select>
+                {/* <input
                   type="text"
                   name="sampleType"
                   value={formData.sampleType}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
+                /> */}
               </div>
 
               <div>
@@ -401,13 +424,27 @@ const BloodRequest = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Transfusion Indication <span className=' text-red-700'>*</span>
                 </label>
-                <input
+                <select id="" name="transfusionIndication"
+                  value={formData.transfusionIndication}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                  <option value="">select Transfusion Indication</option>
+                  <option value="-">-</option>
+                  <option value="1">1</option>
+                  <option value="Anaemia">Anaemia</option>
+                  <option value="Blood Loss">Blood Loss</option>
+                  <option value="COVID 19">COVID 19</option>
+                  <option value="DENGU">DENGU</option>
+                  <option value="DIC">DIC</option>
+                  <option value="Hypoproteinaemia">Hypoproteinaemia</option>
+                </select>
+                {/* <input
                   type="text"
                   name="transfusionIndication"
                   value={formData.transfusionIndication}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
+                /> */}
               </div>
             </div>
           </Card>
@@ -520,6 +557,16 @@ const BloodRequest = () => {
                       type="button"
                       variant="outline"
                       size="sm"
+                      // onClick={() => {
+                      //   setFormData(prev => ({
+                      //     ...prev,
+                      //     requestComponents: [
+                      //       ...prev.requestComponents,
+                      //       { component: '', quantity: 0, volume: '', no: '' }
+                      //     ]
+                      //   }));
+                      // }}
+
                       onClick={() => {
                         setFormData(prev => ({
                           ...prev,
@@ -528,7 +575,10 @@ const BloodRequest = () => {
                             { component: '', quantity: 0, volume: '', no: '' }
                           ]
                         }));
+
+                        setShowList(false);   // ⬅️ Hide list on new form
                       }}
+
                     >
                       Add Component
                     </Button>
@@ -553,6 +603,7 @@ const BloodRequest = () => {
                             >
                               Remove
                             </Button>
+
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
@@ -569,6 +620,7 @@ const BloodRequest = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                               >
                                 <option value="">Select Component</option>
+                                <option value="PCV">PCV</option>
                                 <option value="PRBC">PRBC</option>
                                 <option value="Platelets">Platelets</option>
                                 <option value="FFP">FFP</option>
@@ -623,7 +675,111 @@ const BloodRequest = () => {
                               />
                             </div>
                           </div>
+                          <div className=' flex justify-end mt-5'>
+                            {/* <Button>
+                              Add
+                            </Button> */}
+
+                            {/* <Button
+                              type="button"
+                              onClick={() => {
+                                // validate
+                                if (!component.component || !component.quantity || !component.no) {
+                                  alert("Please fill required fields");
+                                  return;
+                                }
+
+                                // Add to addedComponents table list
+                                setAddedComponents(prev => [...prev, component]);
+
+                                // Remove current editable form row
+                                const newComponents = formData.requestComponents.filter((_, i) => i !== index);
+
+                                setFormData(prev => ({
+                                  ...prev,
+                                  requestComponents: newComponents
+                                }));
+                              }}
+                            >
+                              Add
+                            </Button> */}
+
+                            {/* <Button
+                              type="button"
+                              onClick={() => {
+                                // validate
+                                if (!component.component || !component.quantity || !component.no) {
+                                  alert("Please fill required fields");
+                                  return;
+                                }
+
+                                // Add to table
+                                setAddedComponents(prev => [...prev, component]);
+
+                                // ❌ DO NOT remove form
+                                // ❌ DO NOT filter requestComponents
+
+                                // ❌ formData.requestComponents ko jaisa hai waisa hi rehne do
+                              }}
+                            >
+                              Add
+                            </Button> */}
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                if (!component.component || !component.quantity || !component.no) {
+                                  alert("Please fill required fields");
+                                  return;
+                                }
+
+                                setAddedComponents(prev => [...prev, component]);
+
+                                // form remove nahi hoga
+                                setShowList(true);   // ⬅️ Show list only after Add pressed
+                              }}
+                            >
+                              Add
+                            </Button>
+
+                          </div>
+
+                          {/* Show list only once under all forms */}
+                          {showList && addedComponents.length > 0 && (
+                            <div className="mt-5 bg-white border rounded-lg p-3">
+                              <h5 className="font-semibold text-gray-700 mb-3">Added Components:</h5>
+
+                              <div className="overflow-x-auto">
+                                <table className="min-w-full border border-gray-300 rounded-lg">
+                                  <thead className="bg-gray-100">
+                                    <tr>
+                                      <th className="border px-3 py-2">#</th>
+                                      <th className="border px-3 py-2">Component</th>
+                                      <th className="border px-3 py-2">Quantity</th>
+                                      <th className="border px-3 py-2">Volume</th>
+                                      <th className="border px-3 py-2">No</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {addedComponents.map((item, idx) => (
+                                      <tr key={idx} className="odd:bg-white even:bg-gray-50">
+                                        <td className="border px-3 py-2">{idx + 1}</td>
+                                        <td className="border px-3 py-2">{item.component}</td>
+                                        <td className="border px-3 py-2">{item.quantity}</td>
+                                        <td className="border px-3 py-2">{item.volume || "N/A"}</td>
+                                        <td className="border px-3 py-2">{item.no}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+
+
                         </div>
+
+
+
                       ))}
                       {formData.requestComponents.length === 0 && (
                         <p className="text-gray-500 text-center py-8">No components added yet. Click "Add Component" to add blood components.</p>
@@ -631,6 +787,39 @@ const BloodRequest = () => {
                     </div>
                   )}
                 </div>
+
+                {/* {addedComponents.length > 0 && (
+                  <div className="mt-5 bg-white border rounded-lg p-3">
+                    <h5 className="font-semibold text-gray-700 mb-3">Added Components:</h5>
+
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full border border-gray-300 rounded-lg">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="border px-3 py-2">#</th>
+                            <th className="border px-3 py-2">Component</th>
+                            <th className="border px-3 py-2">Quantity</th>
+                            <th className="border px-3 py-2">Volume</th>
+                            <th className="border px-3 py-2">No</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {addedComponents.map((item, idx) => (
+                            <tr key={idx} className="odd:bg-white even:bg-gray-50">
+                              <td className="border px-3 py-2">{idx + 1}</td>
+                              <td className="border px-3 py-2">{item.component}</td>
+                              <td className="border px-3 py-2">{item.quantity}</td>
+                              <td className="border px-3 py-2">{item.volume || "N/A"}</td>
+                              <td className="border px-3 py-2">{item.no}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )} */}
+
+
               </Card>
             </div>
 
@@ -820,8 +1009,9 @@ const BloodRequest = () => {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
-                    <option value="pending">Pending</option>
+                  
                     <option value="approve_request">Approve Request</option>
+                      <option value="pending">Pending</option>
                     <option value="approve_and_keep_pending">Approve and Keep Pending</option>
                     <option value="reject_blood_sample">Reject Blood Sample</option>
                     <option value="unknown">Unknown</option>
@@ -855,9 +1045,9 @@ const BloodRequest = () => {
               </div>
             </div>
           </div>
-        </form>
-      </div>
-    </div>
+        </form >
+      </div >
+    </div >
   );
 };
 

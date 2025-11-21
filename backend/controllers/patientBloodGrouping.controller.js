@@ -11,7 +11,8 @@ export const createBloodGrouping = async (req, res) => {
         const data = req.body;
 
         // Check valid patient
-        const patient = await BloodRequestModel.findById(patientID);
+        const patient = await BloodRequestModel.findById(patientID,);
+        
         if (!patient) {
             return res.status(404).json({ success: false, message: "Patient not found" });
         }
@@ -48,17 +49,30 @@ export const createBloodGrouping = async (req, res) => {
                 o_Cell: data.reverse_o_Cell,
             },
 
+            // antigenicStatus: {
+            //     testedBy: data.testedBy,
+            //     remarks: data.remarks,
+            //     checkAntigenicStatus: data.antigen_status_check === "true",
+            //     allowRetest: data.antigen_status_allow === "true",
+            // },
             antigenicStatus: {
-                checkAntigenicStatus: data.antigen_status_check === "true",
-                allowRetest: data.antigen_status_allow === "true",
+                testedBy: data.antigenicStatus?.testedBy,
+                remarks: data.antigenicStatus?.remarks,
+                checkAntigenicStatus: data.antigenicStatus?.checkAntigenicStatus,
+                allowRetest: data.antigenicStatus?.allowRetest,
             },
 
-            testedBy: data.testedBy,
-            remarks: data.remarks,
+
+
         };
 
         const saved = await patientBloodGroupingModel.create(payload);
 
+
+         // 🔥 STATUS UPDATE HERE
+        await BloodRequestModel.findByIdAndUpdate(patientID, {
+            requestSampleStatus: "approve_request",
+        });
         res.status(201).json({
             success: true,
             message: "Blood grouping saved successfully",
@@ -97,7 +111,7 @@ export const getBloodGroupingByPatient = async (req, res) => {
     try {
         const id = req.params.id;
 
-         const record = await patientBloodGroupingModel.findById(req.params.id)
+        const record = await patientBloodGroupingModel.findById(req.params.id)
             .populate("patientID");
 
         res.status(200).json({
@@ -173,20 +187,59 @@ export const updateBloodGrouping = async (req, res) => {
 
 
 
-export const saveValidation = async (req, res) => {
+// export const saveValidation = async (req, res) => {
+//     try {
+//         const { remarks, validatedBy, validatedDate } = req.body;
+
+//         // remarks = { "recordId": { remark: "Valid", note: "sample ok" } }
+
+//         const updates = Object.keys(remarks).map(async (id) => {
+//             return await patientBloodGroupingModel.findByIdAndUpdate(
+//                 id,
+//                 {
+//                     validationRemark: remarks[id].remark,
+//                     validationNote: remarks[id].note,
+//                     validatedBy,
+//                     validatedDate,
+//                 },
+//                 { new: true }
+//             );
+//         });
+
+//         await Promise.all(updates);
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Validation updated successfully",
+//         });
+
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: "Server Error", error });
+//     }
+// };
+
+export const saveBGValidation = async (req, res) => {
     try {
-        const { remarks, validatedBy, validatedDate } = req.body;
+        const { BGValidation } = req.body;
 
-        // remarks = { "recordId": { remark: "Valid", note: "sample ok" } }
+        // BGValidation = {
+        //   rows: { "recordId": { remark, note } },
+        //   validatedBy,
+        //   validatedDate
+        // }
 
-        const updates = Object.keys(remarks).map(async (id) => {
+        const { rows, validatedBy, validatedDate } = BGValidation;
+
+        const updates = Object.keys(rows).map(async (id) => {
             return await patientBloodGroupingModel.findByIdAndUpdate(
                 id,
                 {
-                    validationRemark: remarks[id].remark,
-                    validationNote: remarks[id].note,
-                    validatedBy,
-                    validatedDate,
+                    BGValidation: {
+                        validationRemark: rows[id].remark,
+                        validationNote: rows[id].note,
+                        validatedBy,
+                        validatedDate,
+                    }
                 },
                 { new: true }
             );
@@ -200,10 +253,99 @@ export const saveValidation = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ success: false, message: "Server Error", error });
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error
+        });
     }
 };
 
 
+export const saveABValidation = async (req, res) => {
+    try {
+        const { ABValidation } = req.body;
+
+        // ABValidation = {
+        //   rows: { "recordId": { remark, note } },
+        //   validatedBy,
+        //   validatedDate
+        // }
+
+        const { rows, validatedBy, validatedDate } = ABValidation;
+
+        const updates = Object.keys(rows).map(async (id) => {
+            return await patientBloodGroupingModel.findByIdAndUpdate(
+                id,
+                {
+                    ABValidation: {
+                        validationRemark: rows[id].remark,
+                        validationNote: rows[id].note,
+                        validatedBy,
+                        validatedDate,
+                    }
+                },
+                { new: true }
+            );
+        });
+
+        await Promise.all(updates);
+
+        res.status(200).json({
+            success: true,
+            message: "AB Validation saved successfully",
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error
+        });
+    }
+};
+
+
+
+
+export const saveABScreening = async (req, res) => {
+
+    try {
+
+        const id = req.params.id;
+        const data = req.body;
+
+        const payload = {
+            ABScreening: {
+                threeCell: data.screeningResult,
+                antiBody_1: data.antiBody_1,
+                antiBody_2: data.antiBody_2,
+                antiBody_3: data.antiBody_3,
+                testedBy: data.testedBy,
+                antiBodyStatus: data.antiBodyStatus,
+                auto: data.auto,
+                remark: data.remarks,
+            }
+        };
+        const updated = await patientBloodGroupingModel.findByIdAndUpdate(
+            id,
+            payload,
+            { new: true }
+        );
+        res.status(200).json({
+            success: true,
+            message: "AB Screening updated successfully",
+            data: updated
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error
+        });
+    }
+}
 
 

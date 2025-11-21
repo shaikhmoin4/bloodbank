@@ -30,7 +30,7 @@ const Sidebar = ({ isOpen, onSidebarToggle }) => {
         { name: 'Blood Request', path: '/reception/blood-request' },
         { name: 'BOTS Blood Request', path: '/reception/bots-blood-request' },
         { name: 'Stand Alone BOTS Request', path: '/reception/stand-alone-bots-request' },
-        { name: 'Lab Sanction', path: '/reception/lab-sanction' },
+        { name: 'Lab Sanction', path: '/reception/lab-sanction-list' },
         { name: 'CrossMatch Billing', path: '/reception/crossmatch-billing' },
         { name: 'Final Billing', path: '/reception/final-billing' },
         { name: 'Disease Registration', path: '/reception/disease-registration' },
@@ -137,7 +137,7 @@ const Sidebar = ({ isOpen, onSidebarToggle }) => {
             { name: 'BG Retest First Issue Abnormal', path: '/serology/bg-retest-first-issue-abnormal' },
             { name: 'AB Screening', path: '/serology/ab-screening-list' },
             { name: 'AB Screening - Retest', path: '/serology/ab-screening-retest' },
-            { name: 'AB Validation', path: '/serology/ab-validation' },
+            { name: 'AB Validation', path: '/serology/ab-validation-list' },
             { name: 'Auto AB Screening', path: '/serology/auto-ab-screening' },
             { name: 'Antibody Identification', path: '/serology/antibody-identification' },
             { name: 'Antibody Titer', path: '/serology/antibody-titer' }

@@ -43,18 +43,58 @@ const patientBloodGroupingSchema = mongoose.Schema({
 
     // ---- ANTIGENIC STATUS ----
     antigenicStatus: {
+        testedBy: { type: String },                      // testedBy
+        remarks: { type: String },
         checkAntigenicStatus: { type: Boolean },     // antigen_status_check
-        allowRetest: { type: Boolean },              // antigen_status_allow
+        allowRetest: { type: Boolean },            // antigen_status_allow
     },
 
     // Validation 
-    validationRemark: { type: String },
-    validationNote: { type: String },
-    validatedBy: { type: String },
-    validatedDate: { type: Date },
+    BGValidation: {
+        validationRemark: { type: String },
+        validationNote: { type: String },
+        validatedBy: { type: String },
+        validatedDate: { type: Date },
+    },
+    // Validation 
+    ABValidation: {
+        validationRemark: { type: String },
+        validationNote: { type: String },
+        validatedBy: { type: String },
+        validatedDate: { type: Date },
+    },
 
-    testedBy: { type: String },                      // testedBy
-    remarks: { type: String },                       // remarks
+    ABScreening: {
+        threeCell: {
+            type: String
+        },
+        antiBody_1: {
+            type: String
+        },
+        antiBody_2: {
+            type: String
+        },
+        antiBody_3: {
+            type: String
+        },
+        antiBody_4: {
+            type: String
+        },
+        testedBy: {
+            type: String
+        },
+        antiBodyStatus: {
+            type: String
+        },
+        auto: {
+            type: String
+        },
+        remark: {
+            type: String
+        },
+    }
+
+
 
 }, { timestamps: true });
 

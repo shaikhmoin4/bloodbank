@@ -40,7 +40,9 @@ export default function ABScreeningList() {
     // -----------------------------
     const filteredData = useMemo(() => {
         return data
-            .filter((item) => item.validationRemark === "Valid")
+            .filter((item) => item.BGValidation?.validationRemark === "Valid")
+            // 🛑 AB Screening already done → Do not show in list
+            .filter((item) => !item.ABScreening?.testedBy)
             .filter((item) => {
                 const p = item.patientID || {};
 
@@ -62,8 +64,7 @@ export default function ABScreeningList() {
 
     return (
         <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">AB Screening (Validated List)</h2>
-
+            <h2 className="text-xl font-bold mb-4">Anti Body Screening (Patient)</h2>
 
             <div className="grid grid-cols-6 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border">
 
@@ -128,13 +129,12 @@ export default function ABScreeningList() {
                     <tr>
 
                         <th className="border p-2">Sample ID</th>
+                        <th className="border p-2">Patient ID</th>
                         <th className="border p-2">Patient Name</th>
                         <th className="border p-2">Confirmed BG</th>
-                        <th className="border p-2">Tested By</th>
-                        <th className="border p-2">Validation Remark</th>
                         <th className="border p-2">Age</th>
-                        <th className="border p-2">Validated By</th>
-                        <th className="border p-2">Date</th>
+                        <th className="border p-2">Gender</th>
+                        <th className="border p-2">Request time</th>
                         <th className="border p-2">Action</th>
                     </tr>
                 </thead>
@@ -148,6 +148,8 @@ export default function ABScreeningList() {
 
                                 <td className="border p-2">{p.patientSampleId}</td>
 
+                                <td className="border p-2">{p.patientIdentifier}</td>
+
                                 {/* Patient Name */}
                                 <td className="border p-2">
                                     {p.patientNameF} {p.patientNameM} {p.patientNameL}
@@ -156,24 +158,19 @@ export default function ABScreeningList() {
                                 {/* Confirmed BG */}
                                 <td className="border p-2">{item.bloodGroup?.confirmedBG || "-"}</td>
 
-                                {/* Tested By */}
-                                <td className="border p-2">{item.testedBy || "-"}</td>
 
-                                {/* Validation Remark */}
-                                <td className="border p-2 text-green-600 font-semibold">
-                                    {item.validationRemark}
-                                </td>
+
 
                                 {/* Validation Note */}
                                 <td className="border p-2">{item.patientID.age || "-"}</td>
 
                                 {/* Validated By */}
-                                <td className="border p-2">{item.validatedBy}</td>
+                                <td className="border p-2">{item.patientID.gender}</td>
 
                                 {/* Date */}
                                 <td className="border p-2">
-                                    {item.validatedDate
-                                        ? new Date(item.validatedDate).toLocaleString("en-IN")
+                                    {item.patientID?.requestDateTime
+                                        ? new Date(item.patientID?.requestDateTime).toLocaleString("en-IN")
                                         : "-"}
                                 </td>
 

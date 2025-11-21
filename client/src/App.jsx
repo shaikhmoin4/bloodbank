@@ -214,8 +214,11 @@ import BGGroupingView from './pages/BGGroupingView';
 import BGValidation from './pages/BGvalidation';
 import ABScreeningList from './pages/ABScreeningList';
 import ABScreeningView from './pages/ABScreeningView';
+import ABValidationList from './pages/ABValidationList';
+import LabSanctionList from './pages/LabSanctionList';
+import LabSanctionView from './pages/LabSanctionView';
 
- import Layout from './components/common/layout';
+import Layout from './components/common/layout';
 
 function App() {
   // Check if user is authenticated
@@ -274,7 +277,7 @@ function App() {
             }
           />
 
-           <Route
+          <Route
             path="/serology/bg-grouping-list"
             element={
               <ProtectedRoute>
@@ -325,7 +328,39 @@ function App() {
               </ProtectedRoute>
             }
           />
-         
+          <Route
+            path="/serology/ab-validation-list"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ABValidationList />
+                </Layout>
+              </ProtectedRoute>
+
+            }
+          />
+          <Route
+            path="/reception/lab-sanction-list"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LabSanctionList />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/reception/lab-sanction/view/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LabSanctionView />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Redirect unknown routes to dashboard if authenticated, otherwise to login */}
           <Route
             path="*"

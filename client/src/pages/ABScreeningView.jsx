@@ -2,18 +2,23 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../services/api";
 import Button from "../components/ui/Button";
+import { useNavigate } from "react-router-dom";
 export default function ABScreeningView() {
     const { id } = useParams();
     const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     // Form fields
     const [formData, setFormData] = useState({
         screeningResult: "",
         remarks: "",
         testedBy: "",
-        antiBodyStatus:"",
-        auto:""
+        antiBodyStatus: "",
+        auto: "",
+        antiBody_1: "",
+        antiBody_2: "",
+        antiBody_3: "",
 
     });
 
@@ -41,23 +46,29 @@ export default function ABScreeningView() {
     const p = details.patientID || {};
 
     // Handle Form Submit
-    const handleSubmit = async () => {
-        try {
-            await api.put(`/blood-grouping/ab-screening/${id}`, formData);
+    // ------------------- HANDLE SUBMIT -------------------
+    const handleSubmit = async (e) => {
+    e.preventDefault();
 
-            alert("AB Screening Updated Successfully!");
-        } catch (err) {
-            console.log(err);
-            alert("Error updating!");
-        }
-    };
+    try {
+        await api.put(`/blood-grouping/ab-screening/${id}`, formData);
+
+        alert("AB Screening Updated Successfully!");
+
+        // 👉 Redirect to list page
+        navigate("/serology/ab-screening-list");
+
+    } catch (err) {
+        console.log(err);
+        alert("Error updating!");
+    }
+};
+
 
     return (
         <div className="p-6">
             <h2 className="text-2xl font-bold mb-4">AB Screening View</h2>
 
-            {/* ------- Patient Details Card -------- */}
-            
             <div className="bg-gray-100 p-4 rounded border mb-6">
                 <h3 className="text-lg font-semibold mb-3">Patient Details</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -77,7 +88,7 @@ export default function ABScreeningView() {
 
 
             {/* ---------------- FORM SECTION ---------------- */}
-            <div className="bg-white p-4 rounded border">
+            <form onSubmit={handleSubmit} className="bg-white p-4 rounded border">
                 <h3 className="text-lg font-semibold mb-4">AB Screening Form</h3>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -86,28 +97,35 @@ export default function ABScreeningView() {
                         <select
                             className="border px-3 py-2 rounded w-full"
                             value={formData.screeningResult}
-                            onChange={(e) => setFormData({ ...formData, screeningResult: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({ ...formData, screeningResult: e.target.value })
+                            }
                         >
                             <option value="">Select Three Cell</option>
                             <option value="ABScreening">AB Screening</option>
-                            <option value="OneCell">One Cell</option>
-                            <option value="ThreeCell">Three Cell</option>
-                            <option value="FourCell">Four Cell</option>
+                            <option value="One Cell">One Cell</option>
+                            <option value="Three Cell">Three Cell</option>
+                            <option value="Four Cell">Four Cell</option>
                             <option value="N/A">N/A</option>
-                            <option value="SixCell">Six Cell</option>
+                            <option value="Six Cell">Six Cell</option>
                             <option value="ElevenCell">Eleven Cell</option>
                         </select>
                     </div>
 
                     <div>
                         <label className="text-sm font-medium">Tested By</label>
-                        <input
-                            type="text"
+                        <select
                             className="border px-3 py-2 rounded w-full"
-                            placeholder="Tested By"
                             value={formData.testedBy}
-                            onChange={(e) => setFormData({ ...formData, testedBy: e.target.value })}
-                        />
+                            onChange={(e) =>
+                                setFormData({ ...formData, testedBy: e.target.value })
+                            }
+                        >
+                            <option value="">-- Select Tester --</option>
+                            <option value="moin">moin</option>
+                            <option value="nilesh">nilesh</option>
+                            <option value="hashim">hashim</option>
+                        </select>
                     </div>
 
                     <div>
@@ -117,49 +135,54 @@ export default function ABScreeningView() {
                             className="border px-3 py-2 rounded w-full"
                             placeholder="AntiBody Status"
                             value={formData.antiBodyStatus}
-                            onChange={(e) => setFormData({ ...formData, antiBodyStatus: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({ ...formData, antiBodyStatus: e.target.value })
+                            }
                         />
                     </div>
+
                     <div>
                         <label className="text-sm font-medium">Auto</label>
                         <select
                             className="border px-3 py-2 rounded w-full"
                             value={formData.auto}
-                            onChange={(e) => setFormData({ ...formData, auto: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({ ...formData, auto: e.target.value })
+                            }
                         >
                             <option value="">Select Auto</option>
-                            
                         </select>
                     </div>
                 </div>
 
+                {/* Remarks */}
                 <div className="mb-4">
                     <label className="text-sm font-medium">Remarks</label>
                     <textarea
                         rows={3}
-                        className="border px-3 py-2 rounded w-full" 
+                        className="border px-3 py-2 rounded w-full"
                         value={formData.remarks}
-                        onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                        onChange={(e) =>
+                            setFormData({ ...formData, remarks: e.target.value })
+                        }
                     ></textarea>
                 </div>
 
-
+                {/* Buttons */}
                 <div className="flex gap-3 mt-4 justify-end">
-
-                    <Button className="px-10 py-2">
+                    <Button type="submit" className="px-10 py-2">
                         Save
                     </Button>
-                    <Button className="px-10 py-2">
+
+                    <Button type="button" className="px-10 py-2">
                         Cancel
                     </Button>
-                    <Button className=" px-10 py-2">
+
+                    <Button type="button" className="px-10 py-2">
                         Exit
                     </Button>
                 </div>
-
-
-
-            </div>
+            </form>
         </div>
     );
 }

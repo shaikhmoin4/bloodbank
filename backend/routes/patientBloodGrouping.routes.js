@@ -4,7 +4,9 @@ import {
     createBloodGrouping,
     getBloodGroupingByPatient,
     updateBloodGrouping,
-    saveValidation
+    saveBGValidation,
+    saveABValidation,
+    saveABScreening
 } from "../controllers/patientBloodGrouping.controller.js";
 
 const BloodGroupingRoute = express.Router();
@@ -18,8 +20,10 @@ BloodGroupingRoute.get("/:id", getBloodGroupingByPatient);
 // CREATE
 BloodGroupingRoute.post("/:id", createBloodGrouping);
 
+BloodGroupingRoute.put("/ab-screening/:id", saveABScreening);
 
-BloodGroupingRoute.put("/validation", saveValidation);
+BloodGroupingRoute.put("/validation", saveBGValidation);
+BloodGroupingRoute.put("/ab-validation", saveABValidation);
 
 // UPDATE
 BloodGroupingRoute.put("/:id", updateBloodGrouping);

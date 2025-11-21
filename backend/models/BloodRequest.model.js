@@ -86,16 +86,13 @@ const PatientSchema = new Schema({
       'unknown'
     ],
     default: 'pending'
+
   },
 
   // --- Charges & rate ---
   charges: { type: ChargesSchema },
 
  
-
-
-
-
 
   // --- audit / meta ---
   createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
