@@ -41,7 +41,7 @@ server.use(morgan('combined', {
       logger.http(message.trim());
     }
   }
-}));    
+}));
 
 server.use('/api', routes);
 
@@ -52,7 +52,7 @@ server.use((err, req, res, next) => {
 });
 
 connectDB();
- 
+
 server.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
 });
